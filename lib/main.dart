@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:reprografiaub/screen/homeScreen.dart';
+import 'package:reprografiaub/screen/home/homeScreen.dart';
 
 void main() => runApp(MyApp());
 
