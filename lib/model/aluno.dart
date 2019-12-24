@@ -1,3 +1,5 @@
+Aluno listAlunoFromJson(List<dynamic> str) => Aluno.fromJson(str.first);
+
 class Aluno {
   String id;
   String nome;
@@ -23,12 +25,11 @@ class Aluno {
         id: json["id"] == null ? null : json["id"],
         nome: json["nome"] == null ? null : json["nome"],
         token: json["token"] == null ? null : json["token"],
-        codAluno: json["cod_aluno"] == null ? null : json["cod_aluno"],
-        urlPerfil: json["url_perfil"] == null ? null : json["url_perfil"],
+        codAluno: json["codAluno"] == null ? null : json["codAluno"],
+        urlPerfil: json["urlPerfil"] == null ? null : json["urlPerfil"],
         credito: json["credito"] == null ? null : json["credito"],
-        criadoEm: json["criado_em"] == null
-            ? null
-            : DateTime.parse(json["criado_em"]),
+        criadoEm:
+            json["criadoEm"] == null ? null : DateTime.parse(json["criadoEm"]),
         v: json["v"] == null ? null : json["v"],
       );
 
@@ -36,10 +37,10 @@ class Aluno {
         "id": id == null ? null : id,
         "nome": nome == null ? null : nome,
         "token": token == null ? null : token,
-        "cod_aluno": codAluno == null ? null : codAluno,
-        "url_perfil": urlPerfil == null ? null : urlPerfil,
+        "codAluno": codAluno == null ? null : codAluno,
+        "urlPerfil": urlPerfil == null ? null : urlPerfil,
         "credito": credito == null ? null : credito,
-        "criado_em": criadoEm == null ? null : criadoEm.toIso8601String(),
+        "criadoEm": criadoEm == null ? null : criadoEm.toIso8601String(),
         "v": v == null ? null : v,
       };
 }

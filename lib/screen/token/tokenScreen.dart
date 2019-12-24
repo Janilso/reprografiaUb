@@ -18,7 +18,7 @@ class _TokenScreenState extends State<TokenScreen> {
 
   fatchValidateToken() {
     setState(() => _loading = true);
-    Timer(Duration(seconds: 5), () {
+    Timer(Duration(seconds: 2), () {
       setState(() => _loading = false);
       // Navigator.pushReplacement(
       Navigator.push(

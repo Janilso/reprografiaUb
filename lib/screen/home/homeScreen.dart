@@ -7,6 +7,7 @@ import 'package:reprografiaub/api/fetch.dart';
 import 'package:reprografiaub/api/routes.dart';
 import 'package:reprografiaub/api/storagePrefs.dart';
 import 'package:reprografiaub/model/aluno.dart';
+import 'package:reprografiaub/utils/components/loading.dart';
 import 'package:reprografiaub/utils/components/slidingUpDowPanel.dart';
 import '../../utils/theme/style.dart';
 
@@ -30,32 +31,49 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   AnimationController _creditsAnimationController;
 
   Size screenSize;
-  int credits = 999;
   Aluno aluno = Aluno(token: "123456");
+  bool _loading = true;
 
   void getStorageAluno() {
     Storage.gett(Storage.aluno).then((onValue) {
       if (onValue != null) {
         final data = Aluno.fromJson(json.decode(onValue));
-        setState(() => aluno = data);
+        setState(() {
+          _loading = true;
+          aluno = data;
+        });
       }
       _fetchGetAluno();
     }).catchError((onError) {
+      setState(() => _loading = false);
       print(onError);
     });
   }
 
   _fetchGetAluno() {
+    setState(() => _loading = true);
     final url = Api.aluno + "/${aluno.token}";
     print("URL ==> $url");
     Fetch.gett(url).then((onValue) {
-      print(onValue);
-      if (onValue != null) {
+      print("ResultFatch ==> $onValue");
+      final code = onValue['code'];
+      if (code == 200) {
         setState(() {
-          aluno = Aluno.fromJson(onValue);
+          aluno = listAlunoFromJson(onValue['body']);
+          _loading = false;
         });
+        _creditsAnimation =
+            IntTween(begin: 0, end: aluno?.credito?.toInt() ?? 999).animate(
+                CurvedAnimation(
+                    parent: _creditsAnimationController,
+                    curve: Curves.easeOutQuad));
+
+        // _creditsAnimationController.forward();
+        print("${aluno.nome} ${aluno.codAluno} ${aluno.criadoEm}");
+        _creditsAnimationController.forward(from: 0);
       }
     }).catchError((onError) {
+      setState(() => _loading = false);
       print(onError);
     });
   }
@@ -63,14 +81,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    // getStorageAluno();
-    _fetchGetAluno();
+    getStorageAluno();
     _arrowAnimationController =
         AnimationController(vsync: this, duration: Duration(milliseconds: 300));
     _colorAnimationController =
         AnimationController(vsync: this, duration: Duration(milliseconds: 10));
     _creditsAnimationController =
-        AnimationController(duration: Duration(seconds: 1), vsync: this);
+        AnimationController(duration: Duration(milliseconds: 500), vsync: this);
 
     _arrowAnimation =
         Tween(begin: 0.0, end: pi).animate(_arrowAnimationController);
@@ -79,12 +96,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         .animate(_colorAnimationController);
     _color2Animation = ColorTween(begin: Colors.transparent, end: secondary)
         .animate(_colorAnimationController);
-
-    _creditsAnimation = IntTween(begin: 0, end: aluno?.credito ?? credits)
-        .animate(CurvedAnimation(
-            parent: _creditsAnimationController, curve: Curves.easeOutQuad));
-
-    _creditsAnimationController.forward();
   }
 
   @override
@@ -110,7 +121,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         floatingActionButton: new FloatingActionButton(
           backgroundColor: primaryColor,
           child: Icon(Icons.cached, color: Colors.white),
-          onPressed: () => _creditsAnimationController.forward(from: 0),
+          onPressed: _fetchGetAluno,
         ),
       ),
     );
@@ -277,8 +288,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       ],
                     ),
                     SizedBox(height: 15),
-                    Text(aluno?.nome ?? "Nome", style: textTitle),
-                    Text(aluno?.codAluno ?? "00.0.00000", style: textSubTitle),
+                    _loading
+                        ? Loading(white: true, size: 14.0, strokeWidth: 2.0)
+                        : Text(aluno?.nome ?? "Nome", style: textTitle),
+                    _loading
+                        ? Loading(
+                            white: true,
+                            size: 12.0,
+                            strokeWidth: 1.0,
+                            padding: 8.0,
+                          )
+                        : Text(aluno?.codAluno ?? "00.0.00000",
+                            style: textSubTitle),
                   ],
                 ),
               ),
@@ -320,14 +341,19 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         children: <Widget>[
                           Text("Créditos".toUpperCase(),
                               style: textSubTitlePrimary),
-                          AnimatedBuilder(
-                              animation: _creditsAnimationController,
-                              builder: (BuildContext context, Widget child) {
-                                return Text(
-                                  _creditsAnimation.value.toString(),
-                                  style: textPointsPrimary,
-                                );
-                              }),
+                          _loading
+                              ? Padding(
+                                  padding: EdgeInsets.only(top: 30),
+                                  child: Loading())
+                              : AnimatedBuilder(
+                                  animation: _creditsAnimationController,
+                                  builder:
+                                      (BuildContext context, Widget child) {
+                                    return Text(
+                                      _creditsAnimation.value.toString(),
+                                      style: textPointsPrimary,
+                                    );
+                                  }),
                         ],
                       ),
                     ),
