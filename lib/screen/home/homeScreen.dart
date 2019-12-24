@@ -1,6 +1,12 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+import 'package:reprografiaub/api/fetch.dart';
+import 'package:reprografiaub/api/routes.dart';
+import 'package:reprografiaub/api/storagePrefs.dart';
+import 'package:reprografiaub/model/aluno.dart';
 import 'package:reprografiaub/utils/components/slidingUpDowPanel.dart';
 import '../../utils/theme/style.dart';
 
@@ -24,13 +30,41 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   AnimationController _creditsAnimationController;
 
   Size screenSize;
+  int credits = 999;
+  Aluno aluno = Aluno(token: "123456");
 
-  int credits = 100;
+  void getStorageAluno() {
+    Storage.gett(Storage.aluno).then((onValue) {
+      if (onValue != null) {
+        final data = Aluno.fromJson(json.decode(onValue));
+        setState(() => aluno = data);
+      }
+      _fetchGetAluno();
+    }).catchError((onError) {
+      print(onError);
+    });
+  }
+
+  _fetchGetAluno() {
+    final url = Api.aluno + "/${aluno.token}";
+    print("URL ==> $url");
+    Fetch.gett(url).then((onValue) {
+      print(onValue);
+      if (onValue != null) {
+        setState(() {
+          aluno = Aluno.fromJson(onValue);
+        });
+      }
+    }).catchError((onError) {
+      print(onError);
+    });
+  }
 
   @override
   void initState() {
     super.initState();
-
+    // getStorageAluno();
+    _fetchGetAluno();
     _arrowAnimationController =
         AnimationController(vsync: this, duration: Duration(milliseconds: 300));
     _colorAnimationController =
@@ -46,9 +80,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     _color2Animation = ColorTween(begin: Colors.transparent, end: secondary)
         .animate(_colorAnimationController);
 
-    _creditsAnimation = IntTween(begin: 0, end: credits).animate(
-        CurvedAnimation(
-            parent: _creditsAnimationController, curve: Curves.easeOut));
+    _creditsAnimation = IntTween(begin: 0, end: aluno?.credito ?? credits)
+        .animate(CurvedAnimation(
+            parent: _creditsAnimationController, curve: Curves.easeOutQuad));
 
     _creditsAnimationController.forward();
   }
@@ -100,9 +134,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       panel: _panel(sizeQR, maxHeight),
       body: _bodyScren(),
       onPanelSlide: (double pos) {
-        if (pos > 0.01 && pos < 0.03) {
-          _colorAnimationController.animateTo(1);
-        }
+        _colorAnimationController.animateTo(1);
         _arrowAnimationController.animateTo(pos);
       },
       onPanelClosed: () {
@@ -150,7 +182,19 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     width: sizeQR,
                     height: sizeQR,
                     color: Colors.white,
-                    child: Image.asset("assets/images/qrcode.png"),
+                    child: QrImage(
+                        version: QrVersions.auto,
+                        data: aluno?.token ?? "",
+                        gapless: true,
+                        errorCorrectionLevel: QrErrorCorrectLevel.Q,
+                        errorStateBuilder: (cnt, err) {
+                          return Container(
+                            child: Center(
+                              child: Text("Uh oh! Erro ao carregar o QRcode...",
+                                  textAlign: TextAlign.center),
+                            ),
+                          );
+                        }),
                   )
                 ],
               ),
@@ -233,8 +277,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       ],
                     ),
                     SizedBox(height: 15),
-                    Text("Alana Sousa", style: textTitle),
-                    Text("20.1.11111", style: textSubTitle),
+                    Text(aluno?.nome ?? "Nome", style: textTitle),
+                    Text(aluno?.codAluno ?? "00.0.00000", style: textSubTitle),
                   ],
                 ),
               ),

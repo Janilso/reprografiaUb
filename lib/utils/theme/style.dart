@@ -155,6 +155,11 @@ TextStyle textTitle = new TextStyle(
   fontSize: 25.0,
   fontWeight: FontWeight.w500,
 );
+TextStyle textTitlePrimary = new TextStyle(
+  color: primaryColor,
+  fontSize: 25.0,
+  fontWeight: FontWeight.w500,
+);
 TextStyle textPointsPrimary = new TextStyle(
   color: primaryColor,
   fontSize: 100.0,
@@ -166,9 +171,27 @@ TextStyle textSubTitle = new TextStyle(
   fontSize: 18.0,
   fontWeight: FontWeight.w300,
 );
+TextStyle textSubTitleGrey = new TextStyle(
+  color: greyColor2,
+  fontSize: 18.0,
+  fontWeight: FontWeight.w300,
+);
 TextStyle textSubTitlePrimary = new TextStyle(
   color: primaryColor,
   fontSize: 18.0,
+  fontWeight: FontWeight.w300,
+);
+TextStyle inputCustomStyle = TextStyle(
+  backgroundColor: Colors.transparent,
+  color: primaryColor,
+  fontSize: 18.0,
+  fontWeight: FontWeight.w400,
+  decoration: TextDecoration.none,
+);
+
+TextStyle buttonCustomStyle = TextStyle(
+  color: Colors.white,
+  fontSize: 20.0,
   fontWeight: FontWeight.w300,
 );
 
