@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:reprografiaub/api/fetch.dart';
+import 'package:reprografiaub/api/routes.dart';
 import 'package:reprografiaub/screen/home/homeScreen.dart';
 import 'package:reprografiaub/utils/components/customButton.dart';
 import 'package:reprografiaub/utils/components/customInputIcon.dart';
@@ -13,19 +15,48 @@ class TokenScreen extends StatefulWidget {
 }
 
 class _TokenScreenState extends State<TokenScreen> {
+  final GlobalKey<FormState> formKey = new GlobalKey<FormState>();
   Size sizeScreen;
   bool _loading = false;
+  TextEditingController _tokenCtl = TextEditingController();
 
-  fatchValidateToken() {
-    setState(() => _loading = true);
-    Timer(Duration(seconds: 2), () {
-      setState(() => _loading = false);
-      // Navigator.pushReplacement(
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (BuildContext context) => HomeScreen()),
-      );
-    });
+  bool _autovalidate = false;
+
+  fetchValidateToken() {
+    final FormState form = formKey.currentState;
+    if (!form.validate()) {
+      setState(() {
+        _loading = false;
+        _autovalidate = true;
+      });
+    } else {
+      setState(() => _loading = true);
+      Map<String, dynamic> data = {"token": _tokenCtl.text};
+      Fetch.post(Api.login, data).then((onValue) {
+        final code = onValue['code'];
+        print("ResponseToken ==> $onValue");
+        if (code == 200) {
+          final response = onValue['body'];
+          setState(() => _loading = false);
+          // Navigator.pushReplacement(
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (BuildContext context) => HomeScreen()),
+          );
+        }
+      }).catchError((onError) {
+        setState(() => _loading = false);
+        print(onError);
+        Timer(Duration(seconds: 2), () {
+          setState(() => _loading = false);
+          // Navigator.pushReplacement(
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (BuildContext context) => HomeScreen()),
+          );
+        });
+      });
+    }
   }
 
   @override
@@ -69,17 +100,24 @@ class _TokenScreenState extends State<TokenScreen> {
               Padding(
                 padding:
                     EdgeInsets.symmetric(horizontal: sizeScreen.width * 0.1),
-                child: CustomInputIcon(
-                  hintText: "Token",
-                  prefixIcon: Icons.vpn_key,
-                  keyboardType: TextInputType.number,
+                child: Form(
+                  key: formKey,
+                  autovalidate: _autovalidate,
+                  child: CustomInputIcon(
+                    hintText: "Token",
+                    prefixIcon: Icons.vpn_key,
+                    keyboardType: TextInputType.number,
+                    controller: _tokenCtl,
+                    validator: (value) =>
+                        value.isEmpty ? 'Digite o Token.' : null,
+                  ),
                 ),
               ),
               SizedBox(height: 40),
               _loading
                   ? Loading()
                   : CustomButton(
-                      text: "Cadastrar", onPressed: fatchValidateToken),
+                      text: "Cadastrar", onPressed: fetchValidateToken),
             ],
           ),
         ),

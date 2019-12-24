@@ -3,6 +3,7 @@ class Api {
       'https://repografiaub.herokuapp.com/api'; // Janilso
 
   static final String aluno = _api + "/aluno";
+  static final String login = _api + "/login";
 }
 
 // https://reprografia-web.herokuapp.com/login

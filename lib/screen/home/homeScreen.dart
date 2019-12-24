@@ -58,10 +58,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       print("ResultFatch ==> $onValue");
       final code = onValue['code'];
       if (code == 200) {
+        final data = listAlunoFromJson(onValue['body']);
         setState(() {
-          aluno = listAlunoFromJson(onValue['body']);
+          aluno = data;
           _loading = false;
         });
+        
         _creditsAnimation =
             IntTween(begin: 0, end: aluno?.credito?.toInt() ?? 999).animate(
                 CurvedAnimation(
@@ -195,7 +197,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     color: Colors.white,
                     child: QrImage(
                         version: QrVersions.auto,
-                        data: aluno?.token ?? "",
+                        data: /* aluno?.token ??  */ "Alberto mizeravi, deu certo o QR",
                         gapless: true,
                         errorCorrectionLevel: QrErrorCorrectLevel.Q,
                         errorStateBuilder: (cnt, err) {
