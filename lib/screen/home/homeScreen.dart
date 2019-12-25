@@ -1,7 +1,10 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:reprografiaub/api/fetch.dart';
 import 'package:reprografiaub/api/routes.dart';
@@ -33,6 +36,62 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   Size screenSize;
   Aluno aluno = Aluno(token: "123456");
   bool _loading = true;
+  File _image;
+  String lastSelectedValue;
+
+  Future getImageLibrary() async {
+    var gallery =
+        await ImagePicker.pickImage(source: ImageSource.gallery, maxWidth: 700);
+    setState(() => _image = gallery);
+  }
+
+  Future cameraImage() async {
+    var image =
+        await ImagePicker.pickImage(source: ImageSource.camera, maxWidth: 700);
+    setState(() => _image = image);
+  }
+
+  void showDemoActionSheet({BuildContext context, Widget child}) {
+    showCupertinoModalPopup<String>(
+      context: context,
+      builder: (BuildContext context) => child,
+    ).then((String value) {
+      if (value != null) {
+        setState(() => lastSelectedValue = value);
+      }
+    });
+  }
+
+  selectCamera() {
+    showDemoActionSheet(
+      context: context,
+      child: CupertinoActionSheet(
+          title: const Text('Selecionar Câmera'),
+          actions: <Widget>[
+            CupertinoActionSheetAction(
+              child: const Text('Câmera'),
+              onPressed: () {
+                Navigator.pop(context, 'Câmera');
+                cameraImage();
+              },
+            ),
+            CupertinoActionSheetAction(
+              child: const Text('Galeria'),
+              onPressed: () {
+                Navigator.pop(context, 'Galeria');
+                getImageLibrary();
+              },
+            ),
+          ],
+          cancelButton: CupertinoActionSheetAction(
+            child: const Text('Cancelar'),
+            isDefaultAction: true,
+            onPressed: () {
+              Navigator.pop(context, 'Cancelar');
+            },
+          )),
+    );
+  }
 
   void getStorageAluno() {
     Storage.gett(Storage.aluno).then((onValue) {
@@ -63,7 +122,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           aluno = data;
           _loading = false;
         });
-        
         _creditsAnimation =
             IntTween(begin: 0, end: aluno?.credito?.toInt() ?? 999).animate(
                 CurvedAnimation(
@@ -239,71 +297,82 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     return SingleChildScrollView(
       child: Column(
         children: <Widget>[
-          GestureDetector(
-            onTap: () {
-              print("clickedsdaas");
-            },
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topRight,
-                  end: Alignment.bottomLeft,
-                  colors: [primaryColor, secondary],
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black26,
-                    blurRadius: 7.0,
-                    spreadRadius: 5.0,
-                    offset: Offset(0.0, 5.0),
-                  )
-                ],
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topRight,
+                end: Alignment.bottomLeft,
+                colors: [primaryColor, secondary],
               ),
-              height: 350,
-              width: MediaQuery.of(context).size.width,
-              child: Container(
-                padding: EdgeInsets.only(top: 70),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    // Foto Perfil
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        Container(
-                          height: 150,
-                          width: 150,
-                          decoration: BoxDecoration(
-                              shape: BoxShape.circle, color: Colors.white54),
-                          child: FractionallySizedBox(
-                            widthFactor: 0.85,
-                            heightFactor: 0.85,
-                            child: Container(
-                              child: CircleAvatar(
-                                backgroundColor: Colors.blue,
-                                backgroundImage: ExactAssetImage(
-                                    'assets/images/profile.jpg'),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 7.0,
+                  spreadRadius: 5.0,
+                  offset: Offset(0.0, 5.0),
+                )
+              ],
+            ),
+            height: 350,
+            width: MediaQuery.of(context).size.width,
+            child: Container(
+              padding: EdgeInsets.only(top: 70),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  // Foto Perfil
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Container(
+                        height: 150,
+                        width: 150,
+                        decoration: BoxDecoration(
+                            shape: BoxShape.circle, color: Colors.white54),
+                        child: FractionallySizedBox(
+                          widthFactor: 0.85,
+                          heightFactor: 0.85,
+                          child: Container(
+                            child: GestureDetector(
+                              onTap: () => selectCamera(),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(100.0),
+                                child: _image == null
+                                    ? aluno?.urlPerfil != null
+                                        ? FadeInImage.assetNetwork(
+                                            placeholder:
+                                                'assets/images/placeholder-gif.gif', // Loading
+                                            image:
+                                                '${aluno?.urlPerfil.toString()}',
+                                            alignment: Alignment.center,
+                                            fit: BoxFit.cover,
+                                          )
+                                        : Image.asset(
+                                            'assets/images/place-holder.png',
+                                            fit: BoxFit.cover,
+                                          )
+                                    : Image.file(_image, fit: BoxFit.cover),
                               ),
                             ),
                           ),
                         ),
-                      ],
-                    ),
-                    SizedBox(height: 15),
-                    _loading
-                        ? Loading(white: true, size: 14.0, strokeWidth: 2.0)
-                        : Text(aluno?.nome ?? "Nome", style: textTitle),
-                    _loading
-                        ? Loading(
-                            white: true,
-                            size: 12.0,
-                            strokeWidth: 1.0,
-                            padding: 8.0,
-                          )
-                        : Text(aluno?.codAluno ?? "00.0.00000",
-                            style: textSubTitle),
-                  ],
-                ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 15),
+                  _loading
+                      ? Loading(white: true, size: 14.0, strokeWidth: 2.0)
+                      : Text(aluno?.nome ?? "Nome", style: textTitle),
+                  _loading
+                      ? Loading(11
+                          white: true,
+                          size: 12.0,
+                          strokeWidth: 1.0,
+                          padding: 8.0,
+                        )
+                      : Text(aluno?.codAluno ?? "00.0.00000",
+                          style: textSubTitle),
+                ],
               ),
             ),
           ),

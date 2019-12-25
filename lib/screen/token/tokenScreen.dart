@@ -32,29 +32,37 @@ class _TokenScreenState extends State<TokenScreen> {
     } else {
       setState(() => _loading = true);
       Map<String, dynamic> data = {"token": _tokenCtl.text};
-      Fetch.post(Api.login, data).then((onValue) {
-        final code = onValue['code'];
-        print("ResponseToken ==> $onValue");
-        if (code == 200) {
-          final response = onValue['body'];
-          setState(() => _loading = false);
-          // Navigator.pushReplacement(
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (BuildContext context) => HomeScreen()),
-          );
-        }
-      }).catchError((onError) {
+      // Fetch.post(Api.login, data).then((onValue) {
+      //   final code = onValue['code'];
+      //   print("ResponseToken ==> $onValue");
+      //   if (code == 200) {
+      //     final response = onValue['body'];
+      //     setState(() => _loading = false);
+      //     // Navigator.pushReplacement(
+      //     Navigator.push(
+      //       context,
+      //       MaterialPageRoute(builder: (BuildContext context) => HomeScreen()),
+      //     );
+      //   }
+      // }).catchError((onError) {
+      //   setState(() => _loading = false);
+      //   print(onError);
+      //   Timer(Duration(seconds: 2), () {
+      //     setState(() => _loading = false);
+      //     // Navigator.pushReplacement(
+      //     Navigator.push(
+      //       context,
+      //       MaterialPageRoute(builder: (BuildContext context) => HomeScreen()),
+      //     );
+      //   });
+      // });
+      Timer(Duration(seconds: 2), () {
         setState(() => _loading = false);
-        print(onError);
-        Timer(Duration(seconds: 2), () {
-          setState(() => _loading = false);
-          // Navigator.pushReplacement(
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (BuildContext context) => HomeScreen()),
-          );
-        });
+        // Navigator.pushReplacement(
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (BuildContext context) => HomeScreen()),
+        );
       });
     }
   }
